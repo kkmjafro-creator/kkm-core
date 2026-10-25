@@ -176,10 +176,11 @@ footer{position:relative;z-index:1;text-align:center;color:var(--mute);padding:3
 
 <script>
 /* ====== 1. PUT YOUR SUPABASE DETAILS HERE ====== */
-const SUPABASE_URL = "https://yipbvsrjcqfihmqquvsd.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpcGJ2c3JqY3FmaWhtcXF1dnNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5MTExNjQsImV4cCI6MjEwODQ4NzE2NH0.yXtwo7rwGx9DycKoRtbI7D2PIgx59jFWSoxIlLFXq6I";
+const SUPABASE_URL = "YOUR_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 const BUCKET = "pdfs";
-const EMAIL_DOMAIN = "@kkmcore.school"; // username kkm123 -> kkm123@kkmcore.school
+const TEACHER_USER = "kkm123";   // teacher username (checked in code)
+const TEACHER_PASS = "admin123"; // teacher password (checked in code)
 /* =============================================== */
 
 const $ = id => document.getElementById(id);
@@ -187,7 +188,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
 const ICONS = ["📘","🧬","📐","🔬","🌍","💻","🎨","📖","⚗️","🧮"];
 const GRADS = [["#7c5cff","#22d3ee"],["#ff5ca8","#ffc233"],["#22d3ee","#34d399"],["#ff7a45","#ff5ca8"],["#a78bfa","#f472b6"]];
-let sb, folders = [], posts = [], current = "all", isTeacher = false, tt;
+let sb, folders = [], posts = [], current = "all", isTeacher = (()=>{try{return localStorage.getItem("kkm_teacher")==="1"}catch(e){return false}})(), tt;
 
 function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),3000)}
 
@@ -250,8 +251,7 @@ function countUp(el,to){
 async function init(){
   if(SUPABASE_URL.startsWith("YOUR_")){ $("setup").hidden=false; render(); return; }
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const {data:{session}} = await sb.auth.getSession();
-  isTeacher=!!session; applyTeacher();
+  applyTeacher();
   await load();
 }
 function applyTeacher(){
@@ -321,12 +321,12 @@ const barOf=f=>f.querySelector(".prog i");
 $("folders").onclick=e=>{const b=e.target.closest("button[data-f]");if(b){current=b.dataset.f==="all"?"all":b.dataset.f;render();$("postsTitle").scrollIntoView({behavior:"smooth",block:"start"})}};
 $("q").oninput=render;
 $("loginBtn").onclick=()=>{$("loginErr").textContent="";$("loginDlg").showModal()};
-$("logoutBtn").onclick=async()=>{await sb.auth.signOut();isTeacher=false;applyTeacher();toast("Logged out")};
+$("logoutBtn").onclick=()=>{isTeacher=false;try{localStorage.removeItem("kkm_teacher")}catch(e){}applyTeacher();toast("Logged out")};
 
 $("loginForm").onsubmit=async e=>{
-  e.preventDefault(); if(!sb) return;
-  const {error}=await sb.auth.signInWithPassword({email:$("user").value.trim().toLowerCase()+EMAIL_DOMAIN,password:$("pass").value});
-  if(error){$("loginErr").textContent="Wrong username or password.";return}
+  e.preventDefault();
+  if($("user").value.trim()!==TEACHER_USER||$("pass").value!==TEACHER_PASS){$("loginErr").textContent="Wrong username or password.";return}
+  try{localStorage.setItem("kkm_teacher","1")}catch(e){}
   $("loginDlg").close();$("pass").value="";isTeacher=true;applyTeacher();toast("Welcome, teacher!");
 };
 $("folderForm").onsubmit=async e=>{
