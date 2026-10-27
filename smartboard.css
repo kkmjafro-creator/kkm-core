@@ -1,0 +1,116 @@
+/* KKM CORE PDFS: smart board, touch and all-device layer. Load AFTER the main <style>. */
+
+/* ---------- 1. Text size that scales with the screen + student A-/A+ control ---------- */
+:root{--base:1;--zoom:1}
+html{font-size:calc(100% * var(--base) * var(--zoom))}
+@media(min-width:1600px){:root{--base:1.25}}
+@media(min-width:2400px){:root{--base:1.6}}
+
+/* manual light/dark switch (projectors and boards often wash out dark themes) */
+:root[data-theme="dark"]{--bg:#070816;--ink:#eef0ff;--mute:#aab0d8;--glass:rgba(255,255,255,.07);--line:rgba(255,255,255,.16);--danger:#ff8a9b}
+:root[data-theme="light"]{--bg:#f2f1ff;--ink:#15153a;--mute:#4a4d80;--glass:rgba(255,255,255,.85);--line:rgba(80,70,160,.25);--danger:#c0213c}
+
+/* ---------- 2. Lighter animations (smart boards have weak GPUs) ---------- */
+*{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+nav{background:var(--bg);flex-wrap:wrap}
+.aurora i{animation:none;filter:blur(70px);opacity:.22}
+.float{animation:none;opacity:.8}
+.hero p,.searchbox,.stats{animation:fade .4s both}
+.ltr{animation:rise .45s ease-out both;animation-delay:calc(var(--i)*25ms);background-size:300% 100%;background-position:calc(var(--i)*8%) 0}
+.cred{animation:none;background-size:100% 100%}
+.empty b{animation:none}
+.pgw{animation:none}
+.tilt,.rv.in.tilt{transform:none!important}
+.tilt::before{display:none}
+.rv{transform:translateY(10px);transition:opacity .3s,transform .3s;transition-delay:0s}
+.tile:hover .ico{transform:none}
+.file:hover{transform:none}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(-8px)}}
+
+/* ---------- 3. Fits every screen width ---------- */
+.tiles{grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr))}
+.posts{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))}
+.file span.n{min-width:0}
+img,canvas,iframe{max-width:100%}
+.pgc{max-width:none}
+
+@media(min-width:1400px){
+  section.blk,.panel{max-width:min(1600px,96vw)}
+  .tiles{grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr))}
+  .posts{grid-template-columns:repeat(auto-fill,minmax(min(400px,100%),1fr))}
+  .ico{width:64px;height:64px;font-size:2.1rem}
+}
+@media(max-width:700px){
+  nav{padding:10px 12px;gap:8px}
+  .logo{flex:1 1 100%;font-size:1rem}
+  .logo img{width:34px;height:34px}
+  .hero{padding:34px 14px 22px}
+  .float{display:none}
+  .stat{min-width:90px;padding:10px 14px}
+  section.blk{padding:6px 12px 24px}
+  .panel{margin:0 10px 10px;padding:14px}
+  .viewer{padding:0}
+  .vwin{border-radius:0;border:0}
+  .vbody{padding:8px}
+  .navbtn{width:48px!important;height:48px!important;margin-top:-24px!important}
+}
+@media(max-height:500px){.hero{padding:20px 14px 10px}.vbar,.vtools{padding:4px 10px}}
+
+/* ---------- 4. Touch / smart board targets (finger and pen friendly) ---------- */
+@media(pointer:coarse),(min-width:1400px){
+  button,.btn{min-height:48px;padding:10px 20px}
+  button.del{min-height:44px;padding:8px 14px}
+  .file .btn{padding:8px 16px;font-size:.95rem}
+  input,select,textarea{min-height:48px}
+  .vtools button,.vtools select,.vbar button{min-height:48px;font-size:1rem}
+  .vtools input{width:84px}
+  #wSize{width:150px!important;min-height:32px}
+  .sw{width:40px!important;height:40px!important;min-height:0!important}
+  #swatches{gap:10px}
+  .tile{min-height:84px}
+  .file{padding:10px 8px}
+}
+@media(hover:none){
+  button:hover,.btn:hover{transform:none;box-shadow:0 6px 20px -6px var(--a)}
+  .file:hover{background:none}
+}
+
+/* ---------- 5. Big previous / next buttons inside the viewer ---------- */
+.vwin{position:relative}
+.navbtn{display:none;position:absolute;top:50%;z-index:6;width:64px;height:64px;margin-top:-32px;padding:0;border-radius:50%;
+  font-size:2rem;line-height:1;background:rgba(15,15,45,.6);border:1px solid rgba(255,255,255,.4);box-shadow:none;color:#fff}
+.navbtn.l{left:12px}.navbtn.r{right:24px}
+#vTools:not([hidden]) ~ .navbtn{display:block}
+#vBody.write ~ .navbtn{display:none}
+.viewer.fs.idle .navbtn{opacity:.3}
+
+/* ---------- 6. Device-aware animations (transform + opacity only) ----------
+   data-motion is set by smartboard.js: "full" (capable device), "lite" (weak board/phone),
+   "off" (reduce-motion setting or the student's Motion button). */
+
+/* lite + full: instant touch feedback and a soft page turn in slide mode */
+:root[data-motion="lite"] .tile:active,
+:root[data-motion="full"] .tile:active{transform:scale(.96)!important;transition:transform .1s}
+:root[data-motion="lite"] .vbody.slide .pgw,
+:root[data-motion="full"] .vbody.slide .pgw{animation:pgTurn .28s ease-out both}
+:root[data-motion="lite"] .navbtn:active,
+:root[data-motion="full"] .navbtn:active{transform:scale(.9)}
+@keyframes pgTurn{from{opacity:0;transform:translateX(26px)}}
+
+/* full only: slow floating emojis and a gentle NEW badge pulse */
+@media(min-width:900px){
+  :root[data-motion="full"] .float{animation-name:drift2;animation-duration:8s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;will-change:transform}
+}
+:root[data-motion="full"] .new{display:inline-block;animation:pulseNew 2.4s ease-in-out infinite}
+@keyframes drift2{50%{transform:translateY(-12px)}}
+@keyframes pulseNew{50%{transform:scale(1.12)}}
+
+/* save power: pause loops when the tab is hidden or a file is open */
+:root[data-paused] .float,:root[data-paused] .new,
+body:has(#viewer:not([hidden])) .float{animation-play-state:paused}
+
+/* off: everything still, content simply appears */
+:root[data-motion="off"] *,:root[data-motion="off"] *::before,:root[data-motion="off"] *::after{animation:none!important;transition:none!important}
+:root[data-motion="off"] .rv{opacity:1;transform:none}
